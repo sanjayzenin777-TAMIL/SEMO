@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self Motivate | Strict Focus Mode</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* Custom scrollbar for tasks */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white min-h-screen font-sans relative overflow-hidden flex justify-center">
+
+    <!-- Language Selector (Always visible) -->
+    <div class="absolute top-4 right-6 z-50">
+        <select id="lang-select" onchange="changeLanguage()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg border border-slate-600 focus:outline-none focus:border-emerald-500 cursor-pointer shadow-lg">
+            <option value="en">English</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="ml">മലയാളം (Malayalam)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+        </select>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 1: ONBOARDING & DND WARNING         -->
+    <!-- ========================================== -->
+    <div id="intro-screen" class="flex flex-col items-center justify-center w-full h-screen px-6 bg-gradient-to-br from-slate-900 to-slate-800 absolute inset-0 z-40 transition-opacity duration-500">
+        
+        <div class="max-w-md w-full bg-slate-800 rounded-3xl p-8 border border-slate-700 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-red-500/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="ph-fill ph-warning-circle text-4xl"></i>
+            </div>
+            
+            <h1 id="intro-title" class="text-2xl font-bold mb-2">What is your goal today?</h1>
+            <p id="intro-desc" class="text-slate-400 text-sm mb-6">Before proceeding, put your device on <b>Do Not Disturb</b> to block all calls and messages. This app will enter Full-Screen mode.</p>
+            
+            <div class="space-y-4">
+                <button onclick="enterApp('focus')" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-4 rounded-xl font-bold transition flex items-center justify-center gap-3 shadow-lg">
+                    <i class="ph-fill ph-brain text-2xl"></i>
+                    <span id="btn-focus">Deep Work & Study</span>
+                </button>
+
+                <button onclick="enterApp('gym')" class="w-full bg-orange-600 hover:bg-orange-500 text-white py-4 rounded-xl font-bold transition flex items-center justify-center gap-3 shadow-lg">
+                    <i class="ph-fill ph-barbell text-2xl"></i>
+                    <span id="btn-gym">Gym & Fitness</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- SCREEN 2: THE MAIN DASHBOARD               -->
+    <!-- ========================================== -->
+    <div id="main-app" class="hidden w-full h-screen overflow-y-auto bg-gradient-to-br from-slate-900 to-slate-800 py-10 px-6 absolute inset-0 z-30">
+        
+        <!-- Exit Fullscreen Button -->
+        <button onclick="exitApp()" class="absolute top-4 left-6 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition">
+            <i class="ph-fill ph-arrow-left"></i> <span id="btn-exit">Exit</span>
+        </button>
+
+        <div class="max-w-5xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+            
+            <!-- Dynamic Quote Section -->
+            <div class="col-span-1 md:col-span-2 text-center mb-2">
+                <h1 id="app-title" class="text-3xl font-bold text-emerald-400 mb-2 tracking-wide uppercase">Self Motivate</h1>
+                <div id="quote-box" class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 backdrop-blur-sm cursor-pointer hover:bg-slate-800 transition shadow-xl" onclick="generateQuote()">
+                    <p id="quote-text" class="text-xl italic text-slate-200">"Loading..."</p>
+                    <p id="quote-author" class="text-sm mt-2 font-semibold text-emerald-400">- System</p>
+                    <p class="text-xs text-slate-500 mt-4"><i class="ph ph-arrows-clockwise"></i> <span id="click-quote">Click for a new quote</span></p>
+                </div>
+            </div>
+
+            <!-- Timer Section -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 flex flex-col items-center justify-center shadow-xl">
+                <h2 id="timer-title" class="text-lg font-semibold text-slate-300 mb-2">Focus Session</h2>
+                <div id="timer-display" class="text-5xl md:text-6xl font-mono font-bold text-white mb-6 mt-4 tracking-tighter">00:00:00</div>
+                
+                <div class="flex flex-wrap justify-center gap-3 w-full">
+                    <button onclick="startTimer()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-5 py-2 rounded-full font-bold transition flex items-center gap-2 shadow-lg">
+                        <i class="ph-fill ph-play"></i> <span id="start-btn">Start</span>
+                    </button>
+                    <button onclick="resetTimer()" class="bg-slate-700 hover:bg-slate-600 text-white px-5 py-2 rounded-full font-bold transition flex items-center gap-2 shadow-lg">
+                        <i class="ph ph-arrow-counter-clockwise"></i> <span id="reset-btn">Reset</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Spotify Integration -->
+            <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl flex flex-col">
+                <h2 id="spotify-title" class="text-lg font-semibold text-slate-300 mb-4 flex items-center gap-2">
+                    <i class="ph-fill ph-spotify-logo text-green-500 text-xl"></i> Spotify Motivation
+                </h2>
+                <!-- Spotify Iframe -->
+                <div class="flex-1 w-full bg-slate-900 rounded-xl overflow-hidden shadow-inner">
+                    <iframe id="spotify-player" style="border-radius:12px" src="" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                </div>
+                <p id="spotify-desc" class="text-xs text-slate-500 mt-3 text-center">Login to Spotify to play full tracks.</p>
+            </div>
+
+            <!-- Micro-Win / Task Tracker -->
+            <div class="col-span-1 md:col-span-2 bg-slate-800 rounded-2xl p-6 border border-slate-700 shadow-xl">
+                <h2 id="tasks-title" class="text-lg font-semibold text-slate-300 mb-2">My Micro-Wins</h2>
+                
+                <div class="flex gap-2 mb-4 mt-4">
+                    <input type="text" id="task-input" placeholder="Enter a task..." class="flex-1 bg-slate-900 text-white px-4 py-3 rounded-xl border border-slate-700 focus:outline-none focus:border-emerald-500 shadow-inner" onkeypress="if(event.key === 'Enter') addTask()">
+                    <button onclick="addTask()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 px-6 py-3 rounded-xl font-bold transition shadow-md">
+                        <i class="ph ph-plus"></i>
+                    </button>
+                </div>
+                <ul id="task-list" class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar"></ul>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- TRANSLATION DICTIONARY ---
+        const translations = {
+            en: {
+                introTitle: "What is your goal today?",
+                introDesc: "Before proceeding, put your device on <b>Do Not Disturb</b> to block all calls and messages. This app will enter Full-Screen mode.",
+                btnFocus: "Deep Work & Study",
+                btnGym: "Gym & Fitness",
+                appTitle: "Self Motivate",
+                clickQuote: "Click for a new quote",
+                timerTitleFocus: "8-Hour Focus Session",
+                timerTitleGym: "2-Hour Gym Session",
+                startBtn: "Start",
+                resetBtn: "Reset",
+                spotifyTitle: "Spotify Motivation",
+                spotifyDesc: "Login to Spotify to play full tracks.",
+                tasksTitle: "My Micro-Wins",
+                taskPlaceholder: "Enter a task...",
+                btnExit: "Exit",
+                timerAlert: "Time is up! Great job today."
+            },
+            ta: {
+                introTitle: "இன்றைய இலக்கு என்ன?",
+                introDesc: "அழைப்புகள் மற்றும் செய்திகளைத் தவிர்க்க, உங்கள் போனை <b>Do Not Disturb</b> இல் வைக்கவும்.",
+                btnFocus: "படிப்பு & வேலை",
+                btnGym: "உடற்பயிற்சி & உடற்தகுதி",
+                appTitle: "சுய உந்துதல்",
+                clickQuote: "புதிய மேற்கோளுக்கு கிளிக் செய்யவும்",
+                timerTitleFocus: "8-மணிநேர கவனம்",
+                timerTitleGym: "2-மணிநேர உடற்பயிற்சி",
+                startBtn: "தொடங்கு",
+                resetBtn: "மீட்டமை",
+                spotifyTitle: "ஸ்பாட்டிஃபை இசை",
+                spotifyDesc: "முழு பாடல்களை இயக்க Spotify-ல் உள்நுழையவும்.",
+                tasksTitle: "இன்றைய சிறு வெற்றிகள்",
+                taskPlaceholder: "ஒரு பணியை உள்ளிடவும்...",
+                btnExit: "வெளியேறு",
+                timerAlert: "நேரம் முடிந்துவிட்டது!"
+            },
+            ml: {
+                introTitle: "ഇന്നത്തെ ലക്ഷ്യം എന്താണ്?",
+                introDesc: "കോളുകളും മെസ്സേജുകളും ഒഴിവാക്കാൻ ഫോൺ <b>Do Not Disturb</b> മോഡിൽ ആക്കുക.",
+                btnFocus: "പഠനം & ജോലി",
+                btnGym: "ജിം & ഫിറ്റ്നസ്",
+                appTitle: "സ്വയം പ്രചോദിപ്പിക്കുക",
+                clickQuote: "പുതിയ ഉദ്ധരണിക്കായി ക്ലിക്ക് ചെയ്യുക",
+                timerTitleFocus: "8-മണിക്കൂർ ശ്രദ്ധ",
+                timerTitleGym: "2-മണിക്കൂർ വ്യായാമം",
+                startBtn: "തുടങ്ങുക",
+                resetBtn: "പുനഃസജ്ജമാക്കുക",
+                spotifyTitle: "Spotify സംഗീതം",
+                spotifyDesc: "മുഴുവൻ പാട്ടുകൾ കേൾക്കാൻ Spotify-ൽ ലോഗിൻ ചെയ്യുക.",
+                tasksTitle: "ഇന്നത്തെ ചെറിയ വിജയങ്ങൾ",
+                taskPlaceholder: "ഒരു ടാസ്ക് നൽകുക...",
+                btnExit: "പുറത്തുകടക്കുക",
+                timerAlert: "സമയം കഴിഞ്ഞു!"
+            },
+            hi: {
+                introTitle: "आज का लक्ष्य क्या है?",
+                introDesc: "कॉल और मैसेज से बचने के लिए अपने फोन को <b>Do Not Disturb</b> पर रखें।",
+                btnFocus: "गहरा ध्यान और पढ़ाई",
+                btnGym: "जिम और फिटनेस",
+                appTitle: "आत्म-प्रेरणा",
+                clickQuote: "नए सुविचार के लिए क्लिक करें",
+                timerTitleFocus: "8-घंटे का फोकस",
+                timerTitleGym: "2-घंटे का जिम",
+                startBtn: "शुरू करें",
+                resetBtn: "रीसेट करें",
+                spotifyTitle: "Spotify संगीत",
+                spotifyDesc: "पूरे गाने सुनने के लिए Spotify में लॉगिन करें।",
+                tasksTitle: "आज की छोटी जीतें",
+                taskPlaceholder: "कोई काम दर्ज करें...",
+                btnExit: "बाहर निकलें",
+                timerAlert: "समय समाप्त!"
+            }
+        };
+
+        const quotes = {
+            focus: {
+                en: [{ text: "The secret of getting ahead is getting started.", author: "Mark Twain" }],
+                ta: [{ text: "முயற்சி திருவினை ஆக்கும் முயற்றின்மை இன்மை புகுத்தி விடும்.", author: "திருக்குறள் (Thirukkural)" }],
+                ml: [{ text: "പ്രയത്നിച്ചാൽ നേടാൻ കഴിയാത്തതായി ഒന്നുമില്ല.", author: "പഴഞ്ചൊല്ല്" }],
+                hi: [{ text: "परिश्रम ही सफलता की कुंजी है।", author: "चाणक्य" }]
+            },
+            gym: {
+                en: [{ text: "The only bad workout is the one that didn't happen.", author: "Unknown" }],
+                ta: [{ text: "உடலினை உறுதி செய்.", author: "பாரதியார் (Bharathiyar)" }],
+                ml: [{ text: "ആരോഗ്യം ആണ് ഏറ്റവും വലിയ സമ്പത്ത്.", author: "പഴഞ്ചൊല്ല്" }],
+                hi: [{ text: "स्वस्थ शरीर में ही स्वस्थ मन का वास होता है।", author: "स्वामी विवेकानंद" }]
+            }
+        };
+
+        // Spotify embed links
+        const SPOTIFY_FOCUS = "https://open.spotify.com/embed/playlist/37i9dQZF1DWZeKCadgRdKQ?utm_source=generator&theme=0"; // Deep Focus playlist
+        const SPOTIFY_GYM = "https://open.spotify.com/embed/playlist/37i9dQZF1DX76Wlfdnj7AP?utm_source=generator&theme=0"; // Beast Mode playlist
+
+        let currentLang = 'en';
+        let currentMode = 'focus'; // defaults to focus
+
+        // --- APP NAVIGATION & FULLSCREEN LOGIC ---
+        function enterApp(mode) {
+            currentMode = mode;
+            
+            // Switch UI screens
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+
+            // Force Fullscreen mode to block out tabs/desktop distractions
+            let elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => console.log("Fullscreen blocked by browser"));
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            }
+
+            setupDashboard();
+        }
+
+        function exitApp() {
+            // Exit fullscreen
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(err => console.log(err));
+            } else if (document.webkitExitFullscreen) { /* Safari */
+                document.webkitExitFullscreen();
+            }
+            
+            // Go back to intro screen
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+            
+            resetTimer(); // Stop timer if they leave
+        }
+
+        function setupDashboard() {
+            // 1. Set Spotify Playlist
+            const spotifyPlayer = document.getElementById('spotify-player');
+            spotifyPlayer.src = (currentMode === 'gym') ? SPOTIFY_GYM : SPOTIFY_FOCUS;
+
+            // 2. Set Timer Length (Gym = 2 hours, Focus = 8 hours)
+            timeLeft = (currentMode === 'gym') ? 7200 : 28800; 
+            updateTimerDisplay();
+
+            // 3. Change Colors based on mode
+            const quoteBox = document.getElementById('quote-box');
+            if(currentMode === 'gym') {
+                quoteBox.classList.add('border-l-4', 'border-l-orange-500');
+                document.getElementById('app-title').classList.replace('text-emerald-400', 'text-orange-400');
+            } else {
+                quoteBox.classList.remove('border-l-4', 'border-l-orange-500');
+                document.getElementById('app-title').classList.replace('text-orange-400', 'text-emerald-400');
+            }
+
+            changeLanguage(); // Apply correct text
+        }
+
+        function changeLanguage() {
+            currentLang = document.getElementById('lang-select').value;
+            const t = translations[currentLang];
+
+            // Intro Screen
+            document.getElementById('intro-title').innerText = t.introTitle;
+            document.getElementById('intro-desc').innerHTML = t.introDesc;
+            document.getElementById('btn-focus').innerText = t.btnFocus;
+            document.getElementById('btn-gym').innerText = t.btnGym;
+
+            // Main Dashboard
+            document.getElementById('btn-exit').innerText = t.btnExit;
+            document.getElementById('app-title').innerText = t.appTitle;
+            document.getElementById('timer-title').innerText = (currentMode === 'gym') ? t.timerTitleGym : t.timerTitleFocus;
+            document.getElementById('start-btn').innerText = t.startBtn;
+            document.getElementById('reset-btn').innerText = t.resetBtn;
+            
+            document.getElementById('spotify-title').innerHTML = `<i class="ph-fill ph-spotify-logo text-green-500 text-xl"></i> ${t.spotifyTitle}`;
+            document.getElementById('spotify-desc').innerText = t.spotifyDesc;
+            
+            document.getElementById('tasks-title').innerText = t.tasksTitle;
+            document.getElementById('task-input').placeholder = t.taskPlaceholder;
+            document.getElementById('click-quote').innerText = t.clickQuote;
+
+            generateQuote();
+        }
+
+        function generateQuote() {
+            const langQuotes = quotes[currentMode][currentLang]; // Fetches based on focus vs gym, then language
+            const randomQuote = langQuotes[Math.floor(Math.random() * langQuotes.length)];
+            
+            document.getElementById('quote-text').innerText = `"${randomQuote.text}"`;
+            
+            const authorEl = document.getElementById('quote-author');
+            authorEl.innerText = `- ${randomQuote.author}`;
+            
+            // Adjust author color based on mode
+            if(currentMode === 'gym') {
+                authorEl.className = "text-sm mt-2 font-semibold text-orange-400";
+            } else {
+                authorEl.className = "text-sm mt-2 font-semibold text-emerald-400";
+            }
+        }
+
+        // --- TIMER LOGIC ---
+        let timeLeft = 28800; // Defaults to 8h, overridden by setupDashboard()
+        let timerInterval;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(timeLeft / 3600);
+            const minutes = Math.floor((timeLeft % 3600) / 60);
+            const seconds = timeLeft % 60;
+            document.getElementById('timer-display').innerText = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    alert(translations[currentLang].timerAlert);
+                }
+            }, 1000);
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = (currentMode === 'gym') ? 7200 : 28800; 
+            updateTimerDisplay();
+        }
+
+        // --- TASK LOGIC ---
+        let tasks = JSON.parse(localStorage.getItem('selfMotivateTasks')) || [];
+
+        function renderTasks() {
+            const list = document.getElementById('task-list');
+            list.innerHTML = ''; 
+            tasks.forEach((task, index) => {
+                const li = document.createElement('li');
+                li.className = `flex items-center justify-between p-3 rounded-lg border ${task.completed ? 'bg-slate-900 border-slate-800 text-slate-500 line-through' : 'bg-slate-700/50 border-slate-600 text-white'} transition-all shadow-sm`;
+                li.innerHTML = `
+                    <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="toggleTask(${index})">
+                        <i class="text-xl ${task.completed ? 'ph-fill ph-check-circle text-emerald-500' : 'ph ph-circle text-slate-400'}"></i>
+                        <span class="break-words">${task.text}</span>
+                    </div>
+                    <button onclick="deleteTask(${index})" class="text-slate-400 hover:text-red-400 transition ml-2">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+            localStorage.setItem('selfMotivateTasks', JSON.stringify(tasks));
+        }
+
+        function addTask() {
+            const input = document.getElementById('task-input');
+            const text = input.value.trim();
+            if (text) {
+                tasks.push({ text: text, completed: false });
+                input.value = '';
+                renderTasks();
+            }
+        }
+
+        function toggleTask(index) {
+            tasks[index].completed = !tasks[index].completed;
+            renderTasks();
+        }
+
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        // Init
+        renderTasks();
+        changeLanguage(); // Sets up intro screen text on first load
+    </script>
+</body>
+</html>
